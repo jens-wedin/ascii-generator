@@ -1,14 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+function getLevelSet(numLevels) {
+  const ramp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+  if (numLevels <= 1) return ramp[0];
+
+  let result = "";
+  for (let i = 0; i < numLevels; i++) {
+    let index = Math.round(i * (ramp.length - 1) / (numLevels - 1));
+    result += ramp[index];
+  }
+  return result;
+}
+
 const CHAR_SETS = {
-  level2: '# ',
-  level4: '@#-. ',
-  level8: '@%#*+=-. ',
-  // 16-level ramp
-  level16: '@%#*+=-:.       ',
-  // 32-level ramp (Extended density)
-  level32: 'SHNDWM#*&8%O0QLCJUYXzcvunxrjft:. ',
-  // For 64+, use a procedural approach or ANSI colors
+  level2: getLevelSet(2),
+  level4: getLevelSet(4),
+  level8: getLevelSet(8),
+  level16: getLevelSet(16),
+  level32: getLevelSet(32),
+  level64: getLevelSet(64),
   blocks: '█▓▒░ '
 };
 
@@ -167,8 +177,9 @@ function App() {
               <option value="level2">Level 2 (# )</option>
               <option value="level4">Level 4 (@#..)</option>
               <option value="level8">Level 8 (@%#..)</option>
-              <option value="level16">Level 16 (@%#..)</option>
-              <option value="level32">Level 32 (Extended)</option>
+              <option value="level16">Level 16</option>
+              <option value="level32">Level 32</option>
+              <option value="level64">Level 64</option>
               <option value="blocks">Blocks (█▓..)</option>
             </select>
           </div>
