@@ -29,6 +29,8 @@ function App() {
   const [bgColor, setBgColor] = useState('#000000');
   const [charSet, setCharSet] = useState('level16');
   const [resolution, setResolution] = useState(100);
+  const [brightness, setBrightness] = useState(0);
+  const [contrast, setContrast] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
 
   const [invert, setInvert] = useState(false);
@@ -73,13 +75,31 @@ function App() {
 
     let asciiArt = '';
     const chars = CHAR_SETS[charSet];
+    const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         const index = (i * width + j) * 4;
-        const r = pixels[index];
-        const g = pixels[index + 1];
-        const b = pixels[index + 2];
+
+        // Apply Brightness & Contrast
+        let r = pixels[index];
+        let g = pixels[index + 1];
+        let b = pixels[index + 2];
+
+        // Contrast
+        r = contrastFactor * (r - 128) + 128;
+        g = contrastFactor * (g - 128) + 128;
+        b = contrastFactor * (b - 128) + 128;
+
+        // Brightness
+        r += brightness;
+        g += brightness;
+        b += brightness;
+
+        // Clamp values
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
 
         // Luminance calculation
         let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
@@ -99,7 +119,7 @@ function App() {
     if (image) {
       generateAscii(image);
     }
-  }, [resolution, charSet, invert]);
+  }, [resolution, charSet, invert, brightness, contrast]);
 
   const exportAsTxt = () => {
     const blob = new Blob([ascii], { type: 'text/plain' });
@@ -213,6 +233,30 @@ function App() {
               value={bgColor}
               onChange={(e) => setBgColor(e.target.value)}
               style={{ width: '100%', height: '40px', padding: '2px', borderRadius: '8px', border: 'none', background: 'none', cursor: 'pointer' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Brightness ({brightness})</label>
+            <input
+              type="range"
+              min="-100"
+              max="100"
+              value={brightness}
+              onChange={(e) => setBrightness(parseInt(e.target.value))}
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Contrast ({contrast})</label>
+            <input
+              type="range"
+              min="-100"
+              max="100"
+              value={contrast}
+              onChange={(e) => setContrast(parseInt(e.target.value))}
+              style={{ width: '100%' }}
             />
           </div>
 

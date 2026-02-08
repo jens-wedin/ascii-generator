@@ -12,6 +12,8 @@ ASCII Art Studio allows users to upload any image and instantly transform it int
 - **Variable Density Levels**: 
   - Supports 2, 4, 8, 16, 32, and 64 levels of character density.
   - A dedicated "Blocks" mode for a solid-character look.
+- **Image Enhancement**:
+  - Real-time brightness and contrast adjustments for better ASCII clarity.
 - **Custom Aesthetic**:
   - Independent color selection for text and background.
   - Invert option to switch the mapping polarity.
