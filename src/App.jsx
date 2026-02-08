@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const CHAR_SETS = {
-  detailed: '@#%*+=-:. ',
-  simple: '#. ',
-  blocks: '█▓▒░ ',
-  minimal: '01 '
+  level2: '# ',
+  level4: '@#-. ',
+  level8: '@%#*+=-. ',
+  // 16-level ramp
+  level16: '@%#*+=-:.       ',
+  // 32-level ramp (Extended density)
+  level32: 'SHNDWM#*&8%O0QLCJUYXzcvunxrjft:. ',
+  // For 64+, use a procedural approach or ANSI colors
+  blocks: '█▓▒░ '
 };
 
 function App() {
@@ -12,7 +17,7 @@ function App() {
   const [ascii, setAscii] = useState('');
   const [textColor, setTextColor] = useState('#ffffff');
   const [bgColor, setBgColor] = useState('#000000');
-  const [charSet, setCharSet] = useState('detailed');
+  const [charSet, setCharSet] = useState('level16');
   const [resolution, setResolution] = useState(100);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -159,10 +164,12 @@ function App() {
               onChange={(e) => setCharSet(e.target.value)}
               style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: '#1e293b', color: 'white', width: '100%' }}
             >
-              <option value="detailed">Detailed (@#%..)</option>
-              <option value="simple">Simple (#..)</option>
+              <option value="level2">Level 2 (# )</option>
+              <option value="level4">Level 4 (@#..)</option>
+              <option value="level8">Level 8 (@%#..)</option>
+              <option value="level16">Level 16 (@%#..)</option>
+              <option value="level32">Level 32 (Extended)</option>
               <option value="blocks">Blocks (█▓..)</option>
-              <option value="minimal">Binary (01)</option>
             </select>
           </div>
 
