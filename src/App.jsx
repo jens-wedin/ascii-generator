@@ -34,6 +34,7 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
 
   const [invert, setInvert] = useState(false);
+  const [dithering, setDithering] = useState(false);
 
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -73,15 +74,13 @@ function App() {
     const imageData = ctx.getImageData(0, 0, width, height);
     const pixels = imageData.data;
 
-    let asciiArt = '';
-    const chars = CHAR_SETS[charSet];
     const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 
+    // Initial luminance calculation
+    const luminanceData = new Float32Array(width * height);
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         const index = (i * width + j) * 4;
-
-        // Apply Brightness & Contrast
         let r = pixels[index];
         let g = pixels[index + 1];
         let b = pixels[index + 2];
@@ -96,16 +95,60 @@ function App() {
         g += brightness;
         b += brightness;
 
-        // Clamp values
+        // Clamp
         r = Math.max(0, Math.min(255, r));
         g = Math.max(0, Math.min(255, g));
         b = Math.max(0, Math.min(255, b));
 
-        // Luminance calculation
         let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
         if (invert) luminance = 1 - luminance;
 
-        // Map 0 (dark) to first chars (dense), 1 (light) to last chars (sparse)
+        luminanceData[i * width + j] = luminance;
+      }
+    }
+
+    // Atkinson Dithering
+    if (dithering) {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const oldPixel = luminanceData[y * width + x];
+          // We quantize to the nearest level available in the char set
+          // For simplicity in dithering, we often think of it as B&W (0 or 1)
+          // but we can quantize to multiples of the char set size too.
+          // However, standard dithering is usually to a fixed set of levels.
+          // Let's quantize to the available characters.
+          const chars = CHAR_SETS[charSet];
+          const numLevels = chars.length;
+          const newPixel = Math.round(oldPixel * (numLevels - 1)) / (numLevels - 1);
+          luminanceData[y * width + x] = newPixel;
+          const error = oldPixel - newPixel;
+
+          const e8 = error / 8;
+
+          // Distribute error to neighbors (Atkinson pattern)
+          // (x+1, y), (x+2, y), (x-1, y+1), (x, y+1), (x+1, y+1), (x, y+2)
+          const neighbors = [
+            [x + 1, y], [x + 2, y],
+            [x - 1, y + 1], [x, y + 1], [x + 1, y + 1],
+            [x, y + 2]
+          ];
+
+          for (const [nx, ny] of neighbors) {
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+              luminanceData[ny * width + nx] += e8;
+            }
+          }
+        }
+      }
+    }
+
+    let asciiArt = '';
+    const chars = CHAR_SETS[charSet];
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        let luminance = luminanceData[i * width + j];
+        // Clamp luminance after error diffusion
+        luminance = Math.max(0, Math.min(1, luminance));
         const charIndex = Math.floor(luminance * (chars.length - 1));
         asciiArt += chars[charIndex];
       }
@@ -119,7 +162,7 @@ function App() {
     if (image) {
       generateAscii(image);
     }
-  }, [resolution, charSet, invert, brightness, contrast]);
+  }, [resolution, charSet, invert, brightness, contrast, dithering]);
 
   const exportAsTxt = () => {
     const blob = new Blob([ascii], { type: 'text/plain' });
@@ -269,6 +312,17 @@ function App() {
               style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
             />
             <label htmlFor="invert" style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Invert Mapping</label>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '10px' }}>
+            <input
+              type="checkbox"
+              id="dithering"
+              checked={dithering}
+              onChange={(e) => setDithering(e.target.checked)}
+              style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
+            />
+            <label htmlFor="dithering" style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>Dithering (Atkinson)</label>
           </div>
         </div>
 
