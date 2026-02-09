@@ -1,5 +1,8 @@
 # ASCII Art Studio
 
+<img width="2358" height="1498" alt="image" src="https://github.com/user-attachments/assets/06c42b69-8185-416d-8a92-c7cb7616012e" />
+
+
 A premium, web-based image-to-ASCII converter built with React and the HTML5 Canvas API.
 
 ## Project Overview
